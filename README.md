@@ -34,7 +34,9 @@ Antes de começar, certifique-se de ter os seguintes softwares instalados em sua
 Siga os passos abaixo para configurar o ambiente e executar o processo de ingestão de dados.
 
 ### 1. Clone o Repositório
-
+```bash
+git clone https://github.com/AleTavares/spark_xml.git
+```
 ### 2. Inicie os Serviços em Segundo Plano
 
 Use o Docker Compose para construir as imagens e iniciar os contêineres do Spark e do PostgreSQL em modo "detached" (segundo plano).
