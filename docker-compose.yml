@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  spark-dev:
+    # Constrói a imagem a partir do Dockerfile localizado em ./infra
+    build:
+      context: .
+      dockerfile: infra/Dockerfile
+    # Nomeia a imagem para referência futura
+    image: poc-spark-env
+    # Mantém o container rodando e permite interação via terminal (equivale a -it)
+    # para que possamos executar os scripts manualmente.
+    tty: true
+    stdin_open: true
+    volumes:
+      # Mapeia o diretório do projeto para /app dentro do container
+      - .:/app
+    # Garante que o serviço do postgres inicie antes do spark-dev
+    depends_on:
+      - postgres
+
+  postgres:
+    build:
+      context: .
+      dockerfile: db/Dockerfile
+    image: poc-postgres-env
+    ports:
+      - "3000:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=xml
