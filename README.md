@@ -1,5 +1,12 @@
 # Processamento de XML com PySpark e PostgreSQL
 
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"/>
+  <img src="https://img.shields.io/badge/PySpark-E25A1C?style=for-the-badge&logo=apache-spark&logoColor=white" alt="PySpark"/>
+  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"/>
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker"/>
+</p>
+
 Este projeto demonstra um pipeline de dados para ler, processar e armazenar informações de arquivos XML complexos. Ele utiliza um ambiente conteinerizado com Docker para garantir a reprodutibilidade e facilitar a configuração.
 
 O fluxo de trabalho principal é:
