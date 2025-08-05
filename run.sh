@@ -1,11 +1,10 @@
 #!/bin/bash
 
 # ==============================================================================
-# Script para executar o job PySpark de ingestão de XML.
+# Script para executar o job PySpark de ingestão de XML via Docker Compose.
 #
-# Este script automatiza a execução do spark-submit, permitindo a configuração
-# de recursos do Spark e parâmetros da aplicação através de variáveis de
-# ambiente.
+# Agora este script executa o spark-submit DENTRO do contêiner Spark usando
+# docker-compose exec, permitindo rodar o script a partir do host (fora do container).
 #
 # Uso:
 #   ./run.sh
@@ -42,15 +41,8 @@ DB_PASSWORD=${DB_PASSWORD:-"postgres"}
 DB_TABLE=${DB_TABLE:-"operacoes_cliente"}
 APP_SCRIPT="/app/importXml.py"
 
-# --- Validação ---
-if [ ! -f "$XML_FILE" ]; then
-    echo "Erro: O arquivo XML '$XML_FILE' não foi encontrado."
-    echo "Verifique o caminho ou defina a variável de ambiente XML_FILE."
-    exit 1
-fi
-
 echo "================================================="
-echo "  Iniciando Job Spark de Ingestão de XML"
+echo "  Iniciando Job Spark de Ingestão de XML (via Docker Compose)"
 echo "================================================="
 echo "  Driver Memory:    ${DRIVER_MEMORY}"
 echo "  Executor Memory:  ${EXECUTOR_MEMORY}"
@@ -60,19 +52,25 @@ echo "  Arquivo XML:      ${XML_FILE}"
 echo "  Tabela Destino:   ${DB_TABLE}"
 echo "================================================="
 
-# --- Execução do spark-submit ---
-spark-submit \
+# --- Executa o comando spark-submit diretamente dentro do container spark-dev ---
+# Esta abordagem é mais robusta do que construir uma string de comando e passá-la
+# para 'bash -c', pois evita problemas de quoting e word splitting.
+# A flag -T desabilita a alocação de um pseudo-TTY, o que é recomendado para
+# execuções não interativas e resolve problemas de parsing de argumentos.
+docker-compose exec -T spark-dev \
+  spark-submit \
   --driver-memory "${DRIVER_MEMORY}" \
   --executor-memory "${EXECUTOR_MEMORY}" \
   --num-executors "${NUM_EXECUTORS}" \
   --packages "${SPARK_PACKAGES}" \
   "${APP_SCRIPT}" \
-    --xml-file "${XML_FILE}" \
-    --db-url "${DB_URL}" \
-    --db-user "${DB_USER}" \
-    --db-password "${DB_PASSWORD}" \
-    --db-table "${DB_TABLE}"
-
+  --input-path "${XML_FILE}" \
+  --db-host "postgres" \
+  --db-port "5432" \
+  --db-name "xml" \
+  --db-user "${DB_USER}" \
+  --db-password "${DB_PASSWORD}" \
+  --table-name "${DB_TABLE}"
 EXIT_CODE=$?
 
 if [ ${EXIT_CODE} -eq 0 ]; then
@@ -80,5 +78,3 @@ if [ ${EXIT_CODE} -eq 0 ]; then
 else
   echo -e "\nErro ao executar o Job Spark (Código de saída: ${EXIT_CODE})"
 fi
-
-exit ${EXIT_CODE}

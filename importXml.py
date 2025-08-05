@@ -134,34 +134,20 @@ def main():
         logging.info("Amostra dos dados processados (5 linhas):")
         final_df.show(5, truncate=False)
 
-                      .withColumn("doc_cnpj", lit(doc_attributes["_CNPJ"])) \
-                      .withColumn("doc_remessa", lit(doc_attributes["_Remessa"])) \
-                      .withColumn("doc_total_cli", lit(doc_attributes["_TotalCli"]))
+        pg_properties = {
+            "user": args.db_user,
+            "password": args.db_password,
+            "driver": "org.postgresql.Driver"
+        }
+        write_to_postgres(final_df, args.db_url, args.db_table, pg_properties)
 
-    print("Schema final do DataFrame a ser salvo:")
-    df_final.printSchema()
-
-    print("\nAmostra dos dados processados:")
-    df_final.show(5, truncate=False)
-
-    # Define as propriedades de conexão com o PostgreSQL.
-    # O hostname 'postgres' é o nome do serviço definido no docker-compose.yml.
-    pg_url = "jdbc:postgresql://postgres:5432/xml"
-    pg_properties = {
-        "user": "postgres",
-        "password": "postgres",
-        "driver": "org.postgresql.Driver"
-    }
-    table_name = "operacoes_cliente"
-
-    print(f"\nEscrevendo dados na tabela '{table_name}' do PostgreSQL...")
-    # Escreve o DataFrame na tabela. O modo 'overwrite' garante que a tabela
-    # seja criada ou substituída a cada execução.
-    df_final.write.jdbc(url=pg_url, table=table_name, mode="overwrite", properties=pg_properties)
-
-    print("Dados importados com sucesso!")
-
-    spark.stop()
+    except Exception as e:
+        logging.error(f"Ocorreu um erro durante a execução do job: {e}", exc_info=True)
+        sys.exit(1)
+    finally:
+        if spark:
+            logging.info("Encerrando a sessão Spark.")
+            spark.stop()
 
 if __name__ == "__main__":
     main()

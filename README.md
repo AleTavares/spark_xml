@@ -64,51 +64,46 @@ docker-compose up --build -d
 *   `-d`: Executa os contêineres em modo "detached" (em segundo plano).
 
 ### 3. Execute o Script de Ingestão
- 
-Com os contêineres rodando, vamos executar o script PySpark manualmente.
 
-**a. Acesse o terminal do contêiner Spark:**
+Para executar o job de ingestão, utilize o script `run.sh` na raiz do projeto. Ele automatiza a chamada ao `spark-submit` dentro do contêiner Docker.
 
+**a. Dê permissão de execução ao script (apenas na primeira vez):**
+   ```bash
+   chmod +x run.sh
+   ```
+
+**b. Execute o script:**
+
+Para uma execução padrão, que processa o arquivo de exemplo e usa as configurações padrão de memória, basta rodar:
+   ```bash
+   ./run.sh
+   ```
+
+#### Execução Avançada (Customizando Parâmetros)
+
+Para processar arquivos maiores ou para se conectar a um banco de dados diferente, você pode customizar a execução passando variáveis de ambiente para o script `run.sh`.
+
+**Exemplo:**
 ```bash
-docker-compose exec spark-dev bash
+DRIVER_MEMORY="2g" \
+EXECUTOR_MEMORY="4g" \
+NUM_EXECUTORS="4" \
+XML_FILE="/app/outro_arquivo.xml" \
+DB_TABLE="minha_tabela" \
+./run.sh
 ```
 
-**b. Execute o script com `spark-submit`:**
+**Parâmetros de Otimização do Spark:**
+*   `DRIVER_MEMORY`: Memória para o processo *driver* (Ex: `1g`).
+*   `EXECUTOR_MEMORY`: Memória para cada *worker* (executor) (Ex: `2g`).
+*   `NUM_EXECUTORS`: Número de *workers* (executors) a serem alocados.
 
-Dentro do terminal do contêiner, você pode executar o script de duas formas: uma básica para testes rápidos e outra avançada para cenários de produção ou otimização.
-
-**Execução Básica**
-
-Este comando utiliza os valores padrão definidos no script para se conectar ao banco de dados e processa o arquivo de exemplo.
-
-```bash
-spark-submit \
-  --packages com.databricks:spark-xml_2.12:0.17.0,org.postgresql:postgresql:42.5.0 \
-  /app/importXml.py --xml-file /app/exemploDocPadraoInfosBasicas.xml
-```
-
-O script irá iniciar uma sessão Spark, baixar as dependências necessárias (driver do PostgreSQL e biblioteca `spark-xml`), processar o arquivo e salvar os dados. Você verá no terminal o schema do DataFrame final e uma amostra dos dados processados.
-
-**Execução Avançada com Otimizações**
-
-Para cenários de produção ou para processar arquivos maiores, recomenda-se ajustar as configurações do Spark para otimizar o uso de recursos. Você pode passar parâmetros adicionais ao `spark-submit` para controlar memória, número de executores, partições, entre outros. Exemplo:
-
-```bash
-spark-submit \
-  --packages com.databricks:spark-xml_2.12:0.17.0,org.postgresql:postgresql:42.5.0 \
-  --conf spark.executor.memory=2g \
-  --conf spark.driver.memory=2g \
-  --conf spark.sql.shuffle.partitions=8 \
-  --conf spark.default.parallelism=8 \
-  /app/importXml.py --xml-file /app/exemploDocPadraoInfosBasicas.xml
-```
-
-- `spark.executor.memory`: Define a quantidade de memória para cada executor.
-- `spark.driver.memory`: Define a quantidade de memória para o driver.
-- `spark.sql.shuffle.partitions`: Controla o número de partições usadas em operações de shuffle.
-- `spark.default.parallelism`: Define o paralelismo padrão para operações RDD.
-
-Ajuste esses valores conforme a capacidade do seu ambiente e o tamanho dos arquivos a serem processados.
+**Parâmetros da Aplicação:**
+*   `XML_FILE`: Caminho do arquivo XML de entrada dentro do contêiner.
+*   `DB_URL`: URL de conexão JDBC do PostgreSQL.
+*   `DB_USER`: Usuário do banco de dados.
+*   `DB_PASSWORD`: Senha do banco de dados.
+*   `DB_TABLE`: Nome da tabela de destino.
 
 ## Verificando o Resultado
 
