@@ -36,8 +36,7 @@ Antes de começar, certifique-se de ter os seguintes softwares instalados em sua
 ├── db/
 │   └── Dockerfile             # Dockerfile para o serviço PostgreSQL
 ├── infra/
-│   ├── Dockerfile             # Dockerfile para o ambiente Spark com Python
-│   └── README.md
+│   └── Dockerfile             # Dockerfile para o ambiente Spark com Python
 ├── docker-compose.yml         # Orquestra os contêineres de Spark e PostgreSQL
 ├── exemploDocPadraoInfosBasicas.xml # Arquivo XML de exemplo para ingestão
 ├── run.sh                     # Script para automatizar a execução do job
@@ -107,7 +106,7 @@ DB_TABLE="minha_tabela" \
 
 ## Verificando o Resultado
 
-Após a execução bem-sucedida do script, os dados do XML estarão na tabela `operacoes_cliente` no banco de dados PostgreSQL.
+Após a execução bem-sucedida do script, os dados do XML estarão na tabela `operacoes_cliente` (ou na tabela que você especificou) no banco de dados PostgreSQL.
 
 Você pode se conectar ao banco de dados usando seu cliente SQL preferido (DBeaver, DataGrip, pgAdmin, etc.) com as seguintes credenciais:
 

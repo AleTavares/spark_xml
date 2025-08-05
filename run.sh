@@ -64,13 +64,11 @@ docker-compose exec -T spark-dev \
   --num-executors "${NUM_EXECUTORS}" \
   --packages "${SPARK_PACKAGES}" \
   "${APP_SCRIPT}" \
-  --input-path "${XML_FILE}" \
-  --db-host "postgres" \
-  --db-port "5432" \
-  --db-name "xml" \
+  --xml-file "${XML_FILE}" \
+  --db-url "${DB_URL}" \
   --db-user "${DB_USER}" \
   --db-password "${DB_PASSWORD}" \
-  --table-name "${DB_TABLE}"
+  --db-table "${DB_TABLE}"
 EXIT_CODE=$?
 
 if [ ${EXIT_CODE} -eq 0 ]; then
