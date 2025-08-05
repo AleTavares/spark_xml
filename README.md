@@ -9,6 +9,14 @@
 
 Este projeto demonstra um pipeline de dados para ler, processar e armazenar informações de arquivos XML complexos. Ele utiliza um ambiente conteinerizado com Docker para garantir a reprodutibilidade e facilitar a configuração.
 
+## Objetivo
+
+O objetivo deste repositório é servir como um caso de uso para o processamento de arquivos XML que seguem o padrão **Documento 3040** do Sistema de Informações de Crédito (SCR), definido pelo Banco Central do Brasil.
+
+Toda a documentação técnica, layouts e arquivos de exemplo podem ser encontrados no site oficial:
+
+*   **Fonte:** [SCR - Documento 3040](https://www.bcb.gov.br/estabilidadefinanceira/scrdoc3040)
+
 O fluxo de trabalho principal é:
 1.  Um script **PySpark** (`importXml.py`) é executado em um contêiner Spark.
 2.  O script lê um arquivo XML (`exemploDocPadraoInfosBasicas.xml`) com uma estrutura aninhada.
@@ -32,6 +40,7 @@ Antes de começar, certifique-se de ter os seguintes softwares instalados em sua
 │   └── README.md
 ├── docker-compose.yml         # Orquestra os contêineres de Spark e PostgreSQL
 ├── exemploDocPadraoInfosBasicas.xml # Arquivo XML de exemplo para ingestão
+├── run.sh                     # Script para automatizar a execução do job
 ├── importXml.py               # Script PySpark principal para o processamento
 └── README.md                  # Este arquivo de instruções
 ```
@@ -66,15 +75,40 @@ docker-compose exec spark-dev bash
 
 **b. Execute o script com `spark-submit`:**
 
-Dentro do terminal do contêiner, execute o seguinte comando. Ele instrui o Spark a baixar os pacotes necessários para ler XML e para se conectar ao PostgreSQL antes de executar o script.
+Dentro do terminal do contêiner, você pode executar o script de duas formas: uma básica para testes rápidos e outra avançada para cenários de produção ou otimização.
+
+**Execução Básica**
+
+Este comando utiliza os valores padrão definidos no script para se conectar ao banco de dados e processa o arquivo de exemplo.
 
 ```bash
 spark-submit \
   --packages com.databricks:spark-xml_2.12:0.17.0,org.postgresql:postgresql:42.5.0 \
-  /app/importXml.py
+  /app/importXml.py --xml-file /app/exemploDocPadraoInfosBasicas.xml
 ```
 
 O script irá iniciar uma sessão Spark, baixar as dependências necessárias (driver do PostgreSQL e biblioteca `spark-xml`), processar o arquivo e salvar os dados. Você verá no terminal o schema do DataFrame final e uma amostra dos dados processados.
+
+**Execução Avançada com Otimizações**
+
+Para cenários de produção ou para processar arquivos maiores, recomenda-se ajustar as configurações do Spark para otimizar o uso de recursos. Você pode passar parâmetros adicionais ao `spark-submit` para controlar memória, número de executores, partições, entre outros. Exemplo:
+
+```bash
+spark-submit \
+  --packages com.databricks:spark-xml_2.12:0.17.0,org.postgresql:postgresql:42.5.0 \
+  --conf spark.executor.memory=2g \
+  --conf spark.driver.memory=2g \
+  --conf spark.sql.shuffle.partitions=8 \
+  --conf spark.default.parallelism=8 \
+  /app/importXml.py --xml-file /app/exemploDocPadraoInfosBasicas.xml
+```
+
+- `spark.executor.memory`: Define a quantidade de memória para cada executor.
+- `spark.driver.memory`: Define a quantidade de memória para o driver.
+- `spark.sql.shuffle.partitions`: Controla o número de partições usadas em operações de shuffle.
+- `spark.default.parallelism`: Define o paralelismo padrão para operações RDD.
+
+Ajuste esses valores conforme a capacidade do seu ambiente e o tamanho dos arquivos a serem processados.
 
 ## Verificando o Resultado
 
